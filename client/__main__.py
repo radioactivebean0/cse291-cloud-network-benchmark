@@ -8,7 +8,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 app = typer.Typer(help="Benchmark runner for network benchmarks.")
 
 
-def write_result(json:str):
+def write_result(json: str):
     file_name = f"{datetime.now().isoformat()}.json"
     with open("results/" + file_name, "w") as f:
         f.write(json)
@@ -32,10 +32,12 @@ def client(destination: str, perf_arguments: str = ""):
 
     typer.echo("Test done")
 
+
 def server():
     command = "iperf3 -s"
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
     proc.wait()
+
 
 if __name__ == "__main__":
     app()
