@@ -12,9 +12,9 @@ app = typer.Typer(help="Benchmark runner for network benchmarks.")
 
 # destination is string of IP
 # bandwidth is in Mbps for now, int values, default = 1Mbps
-# isUDP defines if UDP or TCP test, default is UDP test (so we can see packet losses)
+# isUDP defines if UDP or TCP test, default is TCP test
 # bidir is an arg to do tests in both directions, default is false
-def iperfContinuous(destination, bandwidth = 1, isUDP = True, bidir = False):
+def iperfContinuous(destination, bandwidth = 1, isUDP = False, bidir = False):
     cmd = f"iperf3 -J -c {destination} -b {bandwidth}M"
     if isUDP:
         cmd = cmd + " -u"
@@ -30,7 +30,7 @@ def write_result(json: str):
 
 @app.command()
 def client(destination: str, perf_arguments: str = ""):
-    command = f"iperf3 -J -c {destination} {perf_arguments}"
+    command = iperfContinuous(destination)
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 
     with Progress(
