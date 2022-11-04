@@ -7,6 +7,20 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 app = typer.Typer(help="Benchmark runner for network benchmarks.")
 
+# we may need to add more parameters to smoothen out transmission if we
+# go to higher bitrates or even use multiprocessing.
+
+# destination is string of IP
+# bandwidth is in Mbps for now, int values, default = 1Mbps
+# isUDP defines if UDP or TCP test, default is UDP test (so we can see packet losses)
+# bidir is an arg to do tests in both directions, default is false
+def iperfContinuous(destination, bandwidth = 1, isUDP = True, bidir = False):
+    cmd = f"iperf3 -J -c {destination} -b {bandwidth}M"
+    if isUDP:
+        cmd = cmd + " -u"
+    if bidir:
+        cmd = cmd + " -d"
+    return cmd
 
 def write_result(json: str):
     file_name = f"{datetime.now().isoformat()}.json"
