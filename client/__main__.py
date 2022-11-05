@@ -33,7 +33,7 @@ def write_result(json: str):
 
 @app.command()
 def client(destination: str, perf_arguments: str = ""):
-    command = iperfContinuous(destination)
+    command = iperfContinuous(destination, isUDP=False)
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 
     with Progress(
@@ -49,18 +49,20 @@ def client(destination: str, perf_arguments: str = ""):
 
         typer.echo("Calculating performance metrics")
         json_dict = json.loads(content)
-        retrans = calculate_retransmission(json_dict)
+        protocol = json_dict["start"]["test_start"]["protocol"]
+        if protocol == "TCP":
+            retrans = calculate_retransmission(json_dict)
         latency = calculate_latency(json_dict)
         jitter = calculate_jitter(json_dict)
 
         typer.echo("Generating plots for visualization")
-        draw_plot(retrans, "retransmission", "images/retransmission.png")
-        draw_plot(latency, "latency", "images/latency.png")
-        draw_plot(jitter, "jitter", "images/jitter.png")
-
-        proc = subprocess.Popen("ls results", stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-        result = proc.stdout.read().decode("utf-8")
-        typer.echo(result)
+        if protocol == "TCP":
+            # draw_plot(retrans, "retransmission", "images/retransmission.png")
+            typer.echo(f"Retransmission: {retrans} times")
+        # draw_plot(latency, "latency", "images/latency.png")
+        # draw_plot(jitter, "jitter", "images/jitter.png")
+        typer.echo(f"Latency: {latency} ms")
+        typer.echo(f"Jitter: {jitter} ms")
 
         progress.update(proc_iperf, completed=1)
 
