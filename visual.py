@@ -12,4 +12,11 @@ def draw_plot(data, label, image_path):
     
     plt.savefig(image_path, dpi=150, bbox_inches="tight")
     plt.show()
+
+
+def draw_heatmap():
+    pass
+
+
+# Define more visualization process
     

@@ -1,23 +1,7 @@
 # Benchmark application
 
+This branch is for visualizing results locally after data collection.
+
 ## Run the application
-You can run the application in docker compose or native
-
-Local:
-#### Virtualenv
-you can activate the virtualenv with the following command:
-```bash
-source bin/activate
-```
-
-```bash
-# in one window
-iperf3 -s
-# in another window (make sure to activate the virtualenv)
-python client localhost
-```
-
-Docker:
-```bash
-docker-compose up
-```
+Install matplotlib and run __main__.py locally is strongly recommended.
+However, I also kept the dockerfile. You could also run these codes in a container.
