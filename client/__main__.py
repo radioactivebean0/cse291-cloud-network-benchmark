@@ -14,13 +14,22 @@ app = typer.Typer(help="Benchmark runner for network benchmarks.")
 # bandwidth is in Mbps for now, int values, default = 1Mbps
 # isUDP defines if UDP or TCP test, default is TCP test
 # bidir is an arg to do tests in both directions, default is false
-def iperfContinuous(destination, bandwidth = 1, isUDP = False, bidir = False):
-    cmd = f"iperf3 -J -c {destination} -b {bandwidth}M"
+def iperfContinuous(destination, time = 10, bandwidth = 1, isUDP = False, bidir = False):
+    cmd = f"iperf3 -J -c {destination} -b {bandwidth}M -t {time}"
     if isUDP:
         cmd = cmd + " -u"
     if bidir:
         cmd = cmd + " -d"
     return cmd
+'''
+def iperfBurst(destination, burst_size, isUDP = False, bidir = False):
+    cmd = f"iperf3 -J -c {destination} -b 1280K/{burst_size} --pacing-timer 1000000"
+    if isUDP:
+        cmd = cmd + " -u"
+    if bidir:
+        cmd = cmd + " -d"
+    return cmd
+'''
 
 def write_result(json: str):
     file_name = f"{datetime.now().isoformat()}.json"
@@ -30,7 +39,7 @@ def write_result(json: str):
 
 @app.command()
 def client(destination: str, perf_arguments: str = ""):
-    command = iperfContinuous(destination)
+    command = iperfBurst(destination, 2)
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 
     with Progress(
