@@ -1,3 +1,3 @@
-FROM alpine:3
-RUN apk add --update iperf3 && rm -rf /var/cache/apk/*
-CMD ["iperf3", "-s"]
+FROM nginx
+COPY ./index.html usr/share/nginx/html/index.html
+CMD ["nginx", "-g", "daemon off;"]
