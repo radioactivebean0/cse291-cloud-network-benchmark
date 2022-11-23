@@ -1,18 +1,14 @@
-services:
-  client:
-    build:
-      context: client
-      dockerfile: Dockerfile
-    volumes:
-      - ./results:/app/results
-    command:
-      - "server"
-    depends_on:
-      - server
+version: '3.7'
 
+services:
   server:
-    build:
-      context: server
-      dockerfile: Dockerfile
+    image: networkstatic/iperf3
+    command: ["-s"]
     expose:
       - 5201
+
+  client:
+    image: networkstatic/iperf3
+    command: ["-c", "server"]
+    depends_on:
+      - server
