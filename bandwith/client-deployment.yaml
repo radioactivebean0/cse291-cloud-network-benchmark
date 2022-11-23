@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: client
+spec:
+  template:
+    spec:
+      containers:
+      - image: networkstatic/iperf3
+        name: client
+        args:
+            - -c
+            - server
+      restartPolicy: Never
+  backoffLimit: 4
