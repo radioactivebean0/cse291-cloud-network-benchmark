@@ -1,2 +1,2 @@
-docker build . -t client 
-docker run -p 8089:8089 --network=locustnw client --host=http://server:80
+docker build . -t gcr.io/cse291/client
+docker push gcr.io/cse291/client
