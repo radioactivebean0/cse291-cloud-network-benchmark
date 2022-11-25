@@ -1,16 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: client
+  name: iperf3-client
 spec:
   template:
     spec:
       containers:
       - image: networkstatic/iperf3
-        name: client
+        name: iperf3-client
         args:
             - -c
-            - server
+            - iperf3-server
       restartPolicy: Never
       nodeSelector:
         kubernetes.io/hostname: aks-agentpool-45773067-vmss000000
