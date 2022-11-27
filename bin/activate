@@ -17,5 +17,5 @@ else
     python3 -m venv venv
     sleep 1
     . venv/bin/activate
-    pip install -r visualizer/requirements.txt
+    pip install -r cli/requirements.txt
 fi
