@@ -69,23 +69,41 @@ class IPerfBenchmark():
         # Wait for server to be ready
         typer.echo("Waiting for server to be ready...")
         iperf3_server = {"meta": {"name": "iperf3-server"}}
-        self.wait_for_resource(iperf3_server, "Service")
+        sleep(1)
+        #self.wait_for_resource(iperf3_server, "Service")
         self.deploy_client(client_node)
 
-    async def wait_for_resource(self, kube_resource, kind: RESOURCE_TYPES, namespace="default"):
+    def wait_for_resource(self, kube_resource, kind: RESOURCE_TYPES, namespace="default"):
+        sleep(3)
+        return
+        name = ""
+        if "metadata" in kube_resource.keys():
+            name = kube_resource["metadata"]["name"]
+        else:
+            name = kube_resource["meta"]["name"]
+
+        print(f"Waiting for {kind} {name} to be ready...")
         while True:
             try:
+                print(f"Waiting for {kind} {kube_resource['meta']['name']} to be ready...")
                 resp = self.client.resources.get(
                     api_version="v1", kind=kind
-                ).get(name=kube_resource["metadata"]["name"], namespace=namespace)
-                print(resp)
-                if False:
+                ).get(name=name, namespace=namespace)
+                print(resp.status.phase)
+                if resp.status.phase == "Running":
                     break
+            except NotFoundError as e:
+                print(e)
+                break
             except Exception as e:
-                typer.echo("Waiting for server to be ready...")
+                typer.echo(name)
+                typer.echo(kube_resource["metadata"]["name"])
+                typer.echo(kube_resource)
+                typer.echo(e)
+                typer.echo("Waiting for service to be ready...")
                 sleep(2)
 
-    async def deploy_server(self, server_node):
+    def deploy_server(self, server_node):
         configs = yaml.load_to_dicts("bandwidth/iperf3-server.yaml")
         deployment, service = configs
         nodeSelector = {"kubernetes.io/hostname": server_node}
@@ -95,8 +113,7 @@ class IPerfBenchmark():
         if self.exists_in_kubernetes(service, "Service"):
             self.delete_service(service)
         # Create deployment
-        await self.wait_for_resource(deployment, "Deployment")
-        await self.wait_for_resource(service, "Service")
+        #self.wait_for_resource(service, "Service")
 
         utils.create_from_dict(self.k8api_client, deployment)
         print(f"\n[INFO] deployment `{deployment['metadata']['name']}` created.")
