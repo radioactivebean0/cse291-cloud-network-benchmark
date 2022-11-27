@@ -1,8 +1,9 @@
 import typer
 from kubernetes import config
+from rich.pretty import pprint
 
 from benchmarks import IPerfBenchmark
-from util.kubernetes_integration import terminal_menu
+from util.terminal_ui import terminal_menu
 
 app = typer.Typer(help="Benchmark runner for network benchmarks.")
 
@@ -24,7 +25,8 @@ def kubernetes(help="List all nodes in kubernetes cluster"):
     node_names = None
 
     input("Press enter to continue")
-    IPerfBenchmark(client_node=client_node, server_node=server_node).run()
+    benchmark_in_json = IPerfBenchmark(client_node=client_node, server_node=server_node).run()
+    pprint(benchmark_in_json)
 
 
 if __name__ == "__main__":

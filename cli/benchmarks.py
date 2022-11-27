@@ -1,5 +1,4 @@
 import json
-from pprint import pprint
 from typing import Literal
 from time import sleep
 
@@ -26,7 +25,7 @@ class IPerfBenchmark():
         self.k8api_client = client.ApiClient()
 
     def run(self):
-        self.iperf3_benchmark_kubernetes(self.client_node, self.server_node)
+        return self.iperf3_benchmark_kubernetes(self.client_node, self.server_node)
 
     @staticmethod
     def exists_in_kubernetes(resource, resource_type: RESOURCE_TYPES) -> bool:
@@ -71,7 +70,7 @@ class IPerfBenchmark():
         iperf3_server = {"meta": {"name": "iperf3-server"}}
         sleep(1)
         #self.wait_for_resource(iperf3_server, "Service")
-        self.deploy_client(client_node)
+        return self.deploy_client(client_node)
 
     def wait_for_resource(self, kube_resource, kind: RESOURCE_TYPES, namespace="default"):
         sleep(3)
@@ -110,8 +109,10 @@ class IPerfBenchmark():
         deployment["spec"]["template"]["spec"]["nodeSelector"] = nodeSelector
         if self.exists_in_kubernetes(deployment, "Deployment"):
             self.delete_deployment(deployment)
+            self.wait_for_resource(deployment, "Deployment")
         if self.exists_in_kubernetes(service, "Service"):
             self.delete_service(service)
+            self.wait_for_resource(service, "Service")
         # Create deployment
         #self.wait_for_resource(service, "Service")
 
@@ -143,7 +144,6 @@ class IPerfBenchmark():
             ),
         )
 
-        print("Job deleted. status='%s'" % str(resp.status))
         print(f"\n[INFO] job `{kube_resource['metadata']['name']}` deleted.")
 
     def delete_service(self, kube_resource, namespace="default"):
@@ -177,7 +177,7 @@ class IPerfBenchmark():
 
         # Get logs from job
         typer.echo("Getting logs from job...")
-        self.get_job_logs(job)
+        return self.get_job_logs(job)
 
     def get_job_logs(self, kube_resource, namespace="default"):
         # wait for job to finish
