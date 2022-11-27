@@ -11,7 +11,10 @@ spec:
         args:
             - -c
             - iperf3-server
+            - -J
       restartPolicy: Never
+      labels:
+        app: iperf3-client
       nodeSelector:
         kubernetes.io/hostname: aks-agentpool-45773067-vmss000000
   backoffLimit: 4
