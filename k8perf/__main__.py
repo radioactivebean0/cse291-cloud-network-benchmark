@@ -2,6 +2,7 @@ import logging
 
 import typer
 from kubernetes import config
+from rich.pretty import pprint
 
 from k8perf.benchmarks import IPerfBenchmark
 from k8perf.util_terminal_ui import terminal_menu, show_result
@@ -12,7 +13,7 @@ app = typer.Typer(help="Benchmark runner for network benchmarks.")
 config.load_kube_config()
 
 @app.command()
-def kubernetes(delete_pods: bool=True, debug: bool = False):
+def kubernetes(delete_pods: bool=True, debug: bool = False, json: bool = False):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -49,7 +50,10 @@ def kubernetes(delete_pods: bool=True, debug: bool = False):
         if delete_pods:
             benchmark.cleanup()
 
-    show_result(benchmark_in_json)
+    if json:
+        pprint(benchmark_in_json)
+    else:
+        show_result(benchmark_in_json)
     typer.echo("Done!")
 
 
