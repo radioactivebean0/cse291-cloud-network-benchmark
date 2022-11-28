@@ -1,6 +1,6 @@
 # Locust Benchmark application
 
-## Run the application
+## Run the application locally
 Both the client and the server are running inside Docker containers
 
 ### Server
@@ -39,3 +39,36 @@ docker run -p 8089:8089 --network=locustnw client --host=http://localhost:80
 
 And conduct experiments through `http://localhost:8089` (Only for local testing, experiments for cloud providers like AWS should use the ip address of the instance)
 
+## Conduct experiments on AWS
+
+### Server
+To deploy the server pod, run
+
+```bash
+cd server
+kubectl apply -f server.yaml
+```
+
+To stop a pod, run
+
+```bash
+kubectl delete -f server.yaml
+```
+### Client
+
+The parameters of an experiment are defined inside the `Dockerfile` inside the `client` folder. To change the setting of an experiment, change the command line inside the `Dockerfile` and push the updated image to AWS ECR so that AWS EKS can pull images from client folders. See `client/build.sh` for more commands that push Docker images to AWS ECR. (Note: Remember to open Docker daemon process when pushing images to AWS ECR.)
+
+To deploy a client pod, run
+
+```bash
+cd client
+kubectl apply -f client.yaml
+```
+
+The deployment process will deploy a Job and it will start executing automatically. When a job is finished, run `kubectl logs {podname}` to retrieve the logs of the experiment inside console.
+
+To stop a running experiment/client application, run
+
+```bash
+kubectl delete -f client.yaml
+```
