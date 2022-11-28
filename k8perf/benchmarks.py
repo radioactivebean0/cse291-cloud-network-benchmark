@@ -13,6 +13,9 @@ class IPerfBenchmark:
         self.client_node = client_node
         self.server_node = server_node
         self.k8 = KubernetesIntegration(namespace="default")
+        self.server_resources = yaml.load_to_dicts("bandwidth/iperf3-server.yaml")
+        self.client_resources = yaml.load_to_dicts("bandwidth/iperf3-client.yaml")
+
     def run(self):
         return self.iperf3_benchmark_kubernetes(self.client_node, self.server_node)
 
@@ -29,19 +32,13 @@ class IPerfBenchmark:
         return self.deploy_client(client_node)
 
     def deploy_server(self, server_node):
-        configs = yaml.load_to_dicts("bandwidth/iperf3-server.yaml")
-        deployment, service = configs
+        deployment, service = self.server_resources
         nodeSelector = {"kubernetes.io/hostname": server_node}
         deployment["spec"]["template"]["spec"]["nodeSelector"] = nodeSelector
-        if self.k8.exists_in_kubernetes(deployment, "Deployment"):
-            self.k8.delete_deployment(deployment)
-            self.k8.wait_for_deletion(deployment, "Deployment")
-        if self.k8.exists_in_kubernetes(service, "Service"):
-            self.k8.delete_service(service)
-            self.k8.wait_for_deletion(service, "Service")
+        self.cleanup()
         # Create deployment
         # self.wait_for_resource(service, "Service")
-        info ("Creating server deployment")
+        info("Creating server deployment")
         self.k8.create_from_dict(deployment)
         info("Creating server service")
         self.k8.create_from_dict(service)
@@ -66,3 +63,17 @@ class IPerfBenchmark:
         # Get logs from job
         debug("Getting logs from job")
         return self.k8.get_job_logs(job)
+
+    def cleanup(self):
+        deployment, service = self.server_resources
+        if self.k8.exists_in_kubernetes(deployment, "Deployment"):
+            self.k8.delete_deployment(deployment)
+            self.k8.wait_for_deletion(deployment, "Deployment")
+        if self.k8.exists_in_kubernetes(service, "Service"):
+            self.k8.delete_service(service)
+            self.k8.wait_for_deletion(service, "Service")
+
+        job = self.client_resources[0]
+        if self.k8.exists_in_kubernetes(job, "Job"):
+            self.k8.delete_job(job)
+            self.k8.wait_for_deletion(job, "Job")

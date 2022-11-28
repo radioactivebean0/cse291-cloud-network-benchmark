@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "k8perf"
 #dynamic = ["dependencies"]
-version = "0.2.12"
+version = "0.3.1"
 description = "A kubernetes network performance testing tool"
 authors = [
   { name="Anders Aaen Springborg", email="aaspringborg@gmail.com" },
@@ -27,7 +27,6 @@ dependencies = [
     "InquirerPy",
     "uplink",
     "PyYAML",
-
 ]
 
 [project.scripts]

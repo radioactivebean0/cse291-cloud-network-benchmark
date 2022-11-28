@@ -1,5 +1,6 @@
 from typing import Any, Optional, IO
 
+import rich
 import typer
 from InquirerPy import inquirer
 from InquirerPy.base import Choice
@@ -33,3 +34,18 @@ def terminal_menu(message, nodes):
     return action
 
 
+def bytes_to_human_readable(bytes):
+    units = ["B", "KB", "MB", "GB", "TB", "PB"]
+    unit = 0
+    while bytes > 1024:
+        bytes /= 1024
+        unit += 1
+    return f"{bytes:.2f} {units[unit]}"
+
+
+def show_result(benchmark_in_json):
+    throughput = benchmark_in_json["end"]["sum_received"]["bits_per_second"]
+    cpu_host = benchmark_in_json["end"]["cpu_utilization_percent"]["host_total"]
+    cpu_client = benchmark_in_json["end"]["cpu_utilization_percent"]["remote_total"]
+
+    rich.print(f"[bold green]Throughput: {bytes_to_human_readable(throughput)} [/bold green][bold blue]CPU host: {format(cpu_host, '.2f')}%[/bold blue][bold cyan] CPU client: {format(cpu_client, '.2f')}% [/bold cyan]")
