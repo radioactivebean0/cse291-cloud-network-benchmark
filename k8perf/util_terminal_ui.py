@@ -28,7 +28,7 @@ def terminal_menu(message, nodes):
     ).execute()
 
     if action is None:
-        typer.Exit()
+        raise typer.Exit()
 
     return action
 

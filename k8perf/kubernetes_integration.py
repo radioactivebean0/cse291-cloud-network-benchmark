@@ -1,13 +1,15 @@
 import json
+from logging import info, debug
 from time import sleep
 from typing import Literal
 
-import typer
 from kubernetes import dynamic, config, client, utils
 from kubernetes.client import api_client, ApiException
 from kubernetes.dynamic.exceptions import NotFoundError
 
 RESOURCE_TYPES = Literal["Job", "Service", "Deployment"]
+
+
 
 
 class KubernetesIntegration():
@@ -21,7 +23,7 @@ class KubernetesIntegration():
         self.core_v1 = client.CoreV1Api()
         self.api = client.ApiClient()
 
-    def wait_for_resource(self, kube_resource, resource_type: RESOURCE_TYPES, namespace="default"):
+    def wait_for_resource(self, kube_resource, resource_type: RESOURCE_TYPES):
         name = ""
         if "metadata" in kube_resource.keys():
             name = kube_resource["metadata"]["name"]
@@ -33,32 +35,33 @@ class KubernetesIntegration():
         if resource_type == "Deployment":
             while True:
                 resp = self.apps_v1.read_namespaced_deployment_status(
-                    name=name, namespace=namespace
+                    name=name, namespace=self.namespace
                 )
                 if resp.status.ready_replicas == resp.status.replicas:
                     break
                 else:
-                    typer.echo("Waiting for deployment to be ready...")
+                    info("Waiting: Deployment not ready")
                     sleep(2)
         elif resource_type == "Job":
             while True:
                 resp = self.batch_v1.read_namespaced_job_status(
-                    name=name, namespace=namespace
+                    name=name, namespace=self.namespace
                 )
                 if resp.status.succeeded == 1:
+                    info("Job finished")
                     break
                 else:
-                    typer.echo("Waiting for job to finish...")
+                    info("Waiting: Job not finished")
                     sleep(2)
         elif resource_type == "Service":
             while True:
                 try:
                     resp = self.core_v1.read_namespaced_service_status(
-                        name=name, namespace=namespace
+                        name=name, namespace=self.namespace
                     )
                     break
                 except NotFoundError as e:
-                    typer.echo("Waiting for service to be ready...")
+                    info("Waiting: Service not ready")
                     sleep(2)
 
         else:
@@ -84,7 +87,7 @@ class KubernetesIntegration():
             ),
         )
 
-        print(f"\n[INFO] job `{kube_resource['metadata']['name']}` deleted.")
+        debug(f"Job `{kube_resource['metadata']['name']}` deleted.")
 
     def delete_service(self, kube_resource, namespace="default"):
         # Delete service
@@ -93,30 +96,21 @@ class KubernetesIntegration():
             namespace=namespace,
             body=client.V1DeleteOptions(
                 propagation_policy="Foreground", grace_period_seconds=5
-            ),
+            )
         )
 
-    def get_job_logs(self, kube_resource, namespace="default"):
+    def get_job_logs(self, kube_resource):
         # wait for job to finish
-        while True:
-            batch_v1 = client.BatchV1Api()
-            resp = batch_v1.read_namespaced_job_status(
-                name=kube_resource["metadata"]["name"], namespace=namespace
-            )
-            if resp.status.succeeded == 1:
-                break
-            else:
-                typer.echo("Waiting for job to finish...")
-                sleep(2)
+        self.wait_for_resource(kube_resource, "Job")
 
         # get pod with job selector
         from kubernetes.client import V1PodList
-        api_response: V1PodList = self.core_v1.list_namespaced_pod(namespace=namespace,
+        api_response: V1PodList = self.core_v1.list_namespaced_pod(namespace=self.namespace,
                                                                    label_selector="job-name=iperf3-client")
         job_pod_name = api_response.items[0].metadata.name
         # get logs from pod
         pod_log = self.core_v1.read_namespaced_pod_log(
-            name=job_pod_name, namespace=namespace
+            name=job_pod_name, namespace=self.namespace
         )
 
         pod_log_json = pod_log.replace("'", '"').replace("True", "true").replace("False", "false")
@@ -144,7 +138,7 @@ class KubernetesIntegration():
     def create_from_dict(self, deployment):
         utils.create_from_dict(self.api, deployment, namespace=self.namespace)
 
-    def wait_for_deletetion(self, resource, resource_type: RESOURCE_TYPES, name=""):
+    def wait_for_deletion(self, resource, resource_type: RESOURCE_TYPES, name=""):
         if type(resource) is dict and "metadata" in resource.keys():
             name = resource["metadata"]["name"]
 
