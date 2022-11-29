@@ -12,12 +12,14 @@ app = typer.Typer(help="Benchmark runner for network benchmarks.")
 
 config.load_kube_config()
 
+
 @app.command()
-def kubernetes(delete_pods: bool=True, debug: bool = False, json: bool = False):
+def kubernetes(delete_pods: bool = True, debug: bool = False, json: bool = False):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
     from kubernetes import client
+
     k8s_api = client.CoreV1Api()
     # nodes = [(node, 1) for node in k8s_api.list_node().items]
     nodes = k8s_api.list_node().items
@@ -39,9 +41,9 @@ def kubernetes(delete_pods: bool=True, debug: bool = False, json: bool = False):
 
     # loading animation
     with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            transient=True,
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
     ) as progress:
         task1 = progress.add_task(description="Running benchmark", total=None)
         benchmark = IPerfBenchmark(client_node=client_node, server_node=server_node)
