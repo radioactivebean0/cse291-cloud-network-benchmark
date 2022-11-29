@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: iperf3-client
+spec:
+  template:
+    spec:
+      containers:
+      - image: networkstatic/iperf3
+        name: iperf3-client
+        args:
+            - -c
+            - iperf3-server
+            - -J
+      restartPolicy: Never
+      labels:
+        app: iperf3-client
+      nodeSelector:
+        kubernetes.io/hostname: aks-agentpool-45773067-vmss000000
+  backoffLimit: 4

@@ -1,9 +1,12 @@
 import subprocess
-import time
 from datetime import datetime
+
+from kubernetes import client as k8client, config
 
 import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn
+
+#from client.lib.kubernetes_integration import cli_chooser
 
 app = typer.Typer(help="Benchmark runner for network benchmarks.")
 
@@ -59,6 +62,21 @@ def client(destination: str, perf_arguments: str = ""):
     bandwidth_test(destination)
     rtt_loss_test(destination, 1000)
     typer.echo("Test done")
+
+
+@app.command()
+def kubernetes():
+    config.load_kube_config()
+
+    api_instance = k8client.CoreV1Api()
+    node_list = api_instance.list_node()
+
+    client1, server1 = cli_chooser(node_list.items)
+    # list all nodes
+
+    # print chosen nodes
+    typer.echo(f"Client: {client1}")
+    typer.echo(f"Server: {server1}")
 
 
 def server():
