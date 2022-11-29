@@ -10,9 +10,7 @@ from kubernetes.dynamic.exceptions import NotFoundError
 RESOURCE_TYPES = Literal["Job", "Service", "Deployment"]
 
 
-
-
-class KubernetesIntegration():
+class KubernetesIntegration:
     def __init__(self, namespace="default"):
         self.namespace = namespace
         self.client = dynamic.DynamicClient(
@@ -96,7 +94,7 @@ class KubernetesIntegration():
             namespace=namespace,
             body=client.V1DeleteOptions(
                 propagation_policy="Foreground", grace_period_seconds=5
-            )
+            ),
         )
 
     def get_job_logs(self, kube_resource):
@@ -105,27 +103,35 @@ class KubernetesIntegration():
 
         # get pod with job selector
         from kubernetes.client import V1PodList
-        api_response: V1PodList = self.core_v1.list_namespaced_pod(namespace=self.namespace,
-                                                                   label_selector="job-name=iperf3-client")
+
+        api_response: V1PodList = self.core_v1.list_namespaced_pod(
+            namespace=self.namespace, label_selector="job-name=iperf3-client"
+        )
         job_pod_name = api_response.items[0].metadata.name
         # get logs from pod
         pod_log = self.core_v1.read_namespaced_pod_log(
             name=job_pod_name, namespace=self.namespace
         )
 
-        pod_log_json = pod_log.replace("'", '"').replace("True", "true").replace("False", "false")
+        pod_log_json = (
+            pod_log.replace("'", '"').replace("True", "true").replace("False", "false")
+        )
 
         benchmark_result = json.loads(pod_log_json)
         return benchmark_result
 
-    def exists_in_kubernetes(self, resource, resource_type: RESOURCE_TYPES, name="") -> bool:
+    def exists_in_kubernetes(
+        self, resource, resource_type: RESOURCE_TYPES, name=""
+    ) -> bool:
         if type(resource) is dict and "metadata" in resource.keys():
             name = resource["metadata"]["name"]
 
         if name == "":
             raise Exception("Resource name is empty")
 
-        lookup_function = getattr(self.client.resources.get(api_version="v1", kind=resource_type), "get")
+        lookup_function = getattr(
+            self.client.resources.get(api_version="v1", kind=resource_type), "get"
+        )
 
         try:
             lookup_function(name=name, namespace="default")
@@ -145,7 +151,9 @@ class KubernetesIntegration():
         if name == "":
             raise Exception("Resource name is empty")
 
-        lookup_function = getattr(self.client.resources.get(api_version="v1", kind=resource_type), "get")
+        lookup_function = getattr(
+            self.client.resources.get(api_version="v1", kind=resource_type), "get"
+        )
 
         while True:
             try:
