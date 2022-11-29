@@ -1,4 +1,0 @@
-typer==0.7.0
-rich==12.6.0
-kubernetes==25.3.0
-InquirerPy==0.3.4
