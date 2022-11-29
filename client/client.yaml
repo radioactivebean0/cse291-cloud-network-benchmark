@@ -10,5 +10,5 @@ spec:
         name: locust-client
       restartPolicy: Never
       nodeSelector:
-        kubernetes.io/hostname: ip-172-31-58-2.us-west-2.compute.internal
+        kubernetes.io/hostname: ip-172-31-16-42.us-west-2.compute.internal
   backoffLimit: 4
