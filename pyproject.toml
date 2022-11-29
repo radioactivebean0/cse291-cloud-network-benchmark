@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "k8perf"
+#dynamic = ["dependencies"]
+version = "0.3.2"
+description = "A kubernetes network performance testing tool"
+authors = [
+  { name="Anders Aaen Springborg", email="aaspringborg@gmail.com" },
+  { name="Ryan Nishimoto", email="rnishimoto@ucsd.edu" },
+  { name="Ruoxi Dai", email="rudai@ucsd.edu" },
+]
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: System :: Networking",
+]
+dependencies = [
+    "typer",
+    "kubernetes",
+    "rich",
+    "InquirerPy",
+    "uplink",
+    "PyYAML",
+]
+
+[project.scripts]
+k8perf = "k8perf:app"
+
+
+[tool.setuptools]
+packages = ["k8perf", "bandwidth"]
+
+[tool.setuptools.package-data]
+bandwidth = ["*.yaml", "*.yml"]
+
+[tool.setuptools.dynamic]
+#dependencies = {file = ["requirements.txt"]}
+
+
+[project.urls]
+"Homepage" = "https://github.com/radioactivebean0/cse291-cloud-network-benchmark"
+"Bug Tracker" = "https://github.com/radioactivebean0/cse291-cloud-network-benchmark/issues"
