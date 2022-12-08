@@ -24,8 +24,9 @@ spec:
               - containerPort: 80
             resources: {}
       restartPolicy: Always
-      nodeSelector:
-        kubernetes.io/hostname: ip-172-31-10-58.us-west-2.compute.internal
+      # Getting set in the benchmark tool
+      #nodeSelector:
+      #  kubernetes.io/hostname: kind-worker
 status: {}
 
 
