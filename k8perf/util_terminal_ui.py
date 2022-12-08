@@ -21,14 +21,17 @@ def debug_log(
         print(*objects, sep=sep, end=end, file=file, flush=flush)
 
 
-def terminal_menu(message, nodes):
-    choices = nodes + [Separator(), Choice(value=None, name="Exit")]
+def terminal_menu(message, nodes) -> [str]:
+    choices = nodes + [Separator(), Choice(value="All", name="All nodes"), Choice(value="None", name="Exit")]
     action = inquirer.select(message=message, choices=choices).execute()
 
     if action is None:
         raise typer.Exit()
 
-    return action
+    if action == "All":
+        return nodes
+
+    return [action]
 
 
 def bytes_to_human_readable(bytes):
@@ -37,7 +40,7 @@ def bytes_to_human_readable(bytes):
     while bytes > 1024:
         bytes /= 1024
         unit += 1
-    return f"{bytes:.2f} {units[unit]}"
+    return f"{bytes:.0f} {units[unit]}/s"
 
 
 def show_result(benchmark_in_json):
