@@ -6,12 +6,24 @@ spec:
   template:
     spec:
       containers:
-      - image: 065885464246.dkr.ecr.us-west-2.amazonaws.com/cse291:latest
+      - image: 888aaen/k8perf-locust-benchmark:latest
+
         name: locust-client
         args:
-          - locust
-          -
+            - --host
+            - http://locust-server:80
+            - -u
+            - "500"
+            - -r
+            - "70"
+            - --headless
+            - -t
+            - 10s
+            - --stop-timeout
+            - "5"
+            - --json
       restartPolicy: Never
+      # Getting set in the benchmark tool
       #nodeSelector:
-      #  kubernetes.io/hostname: ip-172-31-16-42.us-west-2.compute.internal
+      #  kubernetes.io/hostname: kind-worker2
   backoffLimit: 4
