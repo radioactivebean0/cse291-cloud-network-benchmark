@@ -1,11 +1,23 @@
+import json
 from logging import info, debug
 from os import path
 from time import sleep
+
+import typer
 
 from . import util_yaml as yaml
 from .kubernetes_integration import KubernetesIntegration
 
 BENCHMARK_NAMESPACE = "network-benchmarks"
+
+
+class LocustBenchmark:
+    def __init__(self, client_node, server_node):
+        self.client_node = client_node
+        self.server_node = server_node
+        self.k8 = KubernetesIntegration(namespace="default")
+        self.server_resources = yaml.load_to_dicts("bandwidth/iperf3-server.yaml")
+        self.client_resources = yaml.load_to_dicts("bandwidth/iperf3-client.yaml")
 
 
 class IPerfBenchmark:
@@ -16,8 +28,15 @@ class IPerfBenchmark:
         self.server_resources = yaml.load_to_dicts("bandwidth/iperf3-server.yaml")
         self.client_resources = yaml.load_to_dicts("bandwidth/iperf3-client.yaml")
 
-    def run(self):
-        return self.iperf3_benchmark_kubernetes(self.client_node, self.server_node)
+    def run(self) -> dict:
+        """Run the iperf3 benchmark and return the results as a dict, from the json parsed output"""
+        try:
+            benchmark = self.iperf3_benchmark_kubernetes(self.client_node, self.server_node)
+            return benchmark
+        except KeyboardInterrupt as e:
+            info("Keyboard interrupt, cleaning up")
+            self.cleanup()
+            raise e
 
     def iperf3_benchmark_kubernetes(self, client_node, server_node):
 
@@ -25,10 +44,6 @@ class IPerfBenchmark:
 
         self.deploy_server(server_node)
 
-        # Wait for server to be ready
-        info("Waiting: Server not ready")
-        iperf3_server = {"meta": {"name": "iperf3-server"}}
-        self.k8.wait_for_resource(iperf3_server, "Service")
         return self.deploy_client(client_node)
 
     def deploy_server(self, server_node):
@@ -42,6 +57,12 @@ class IPerfBenchmark:
         self.k8.create_from_dict(deployment)
         info("Creating server service")
         self.k8.create_from_dict(service)
+
+        info("Waiting: Server not ready")
+        self.k8.wait_for_resource(deployment, "Deployment")
+        iperf3_server = {"meta": {"name": "iperf3-server"}}
+        self.k8.wait_for_resource(iperf3_server, "Service")
+        sleep(1)
 
     def deploy_client(self, client_node):
         configs = yaml.load_to_dicts("bandwidth/iperf3-client.yaml")
@@ -57,11 +78,6 @@ class IPerfBenchmark:
         self.k8.create_from_dict(job)
         debug(f"Job `{job['metadata']['name']}` created.")
 
-        # Wait for job to finish
-        self.k8.wait_for_resource(job, "Job")
-
-        # Get logs from job
-        debug("Getting logs from job")
         return self.k8.get_job_logs(job)
 
     def cleanup(self):
