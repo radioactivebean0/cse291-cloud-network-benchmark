@@ -72,7 +72,7 @@ def kubernetes(delete_pods: bool = True, debug: bool = False, json: bool = False
     # nodes = [(node, 1) for node in k8s_api.list_node().items]
     # get nodes that do not have "noSchedule" taint
     nodes = [node for node in k8s_api.list_node().items if not node.spec.taints]
-    debug_flag = False
+
     if all_nodes:
         benchmark_all_nodes(nodes)
         raise typer.Exit()
