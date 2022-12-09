@@ -1,3 +1,3 @@
 FROM locustio/locust
 COPY locustfile.py .
-ENTRYPOINT [ "python", "-m", "locust", "-f", "locustfile.py", "-u", "500", "-r", "500", "--headless", "-t", "1m", "--host", "http://172.31.14.148:80", "--print-stats", "--csv", "exp" ]
+ENTRYPOINT [ "python", "-m", "locust", "-f", "locustfile.py", "-u", "10", "-r", "10", "--headless", "-t", "2m", "--host", "http://172.31.33.178:80", "--print-stats", "--csv", "exp" ]
