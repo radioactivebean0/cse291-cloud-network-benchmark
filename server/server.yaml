@@ -25,7 +25,7 @@ spec:
             resources: {}
       restartPolicy: Always
       nodeSelector:
-        kubernetes.io/hostname: ip-172-31-10-58.us-west-2.compute.internal
+        kubernetes.io/hostname: ip-172-31-39-72.us-west-2.compute.internal
 status: {}
 
 
