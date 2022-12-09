@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: locust-client
+spec:
+  template:
+    spec:
+      containers:
+      - image: 888aaen/k8perf-locust-benchmark:0.1.2
+
+        name: locust-client
+        args:
+            - --host
+            - http://locust-server:80
+            - -u
+            - "500"
+            - -r
+            - "70"
+            - --headless
+            - -t
+            - 10s
+            - --json
+            - --loglevel
+            - ERROR
+      restartPolicy: Never
+      # Getting set in the benchmark tool
+      #nodeSelector:
+      #  kubernetes.io/hostname: kind-worker2
+  backoffLimit: 4

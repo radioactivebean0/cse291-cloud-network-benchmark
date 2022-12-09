@@ -1,18 +1,16 @@
 import json
 from logging import info, debug
 from time import sleep
-from typing import Literal
+from typing import Literal, Callable
 
 from kubernetes import dynamic, config, client, utils
-from kubernetes.client import api_client, ApiException
+from kubernetes.client import api_client, ApiException, V1Pod, V1PodStatus, V1PodCondition
 from kubernetes.dynamic.exceptions import NotFoundError
 
 RESOURCE_TYPES = Literal["Job", "Service", "Deployment"]
 
 
-
-
-class KubernetesIntegration():
+class KubernetesIntegration:
     def __init__(self, namespace="default"):
         self.namespace = namespace
         self.client = dynamic.DynamicClient(
@@ -43,16 +41,19 @@ class KubernetesIntegration():
                     info("Waiting: Deployment not ready")
                     sleep(2)
         elif resource_type == "Job":
-            while True:
+            timer = 0
+            info("Waiting: Job not finished")
+            while timer < 120:
                 resp = self.batch_v1.read_namespaced_job_status(
                     name=name, namespace=self.namespace
                 )
                 if resp.status.succeeded == 1:
                     info("Job finished")
-                    break
+                    return
                 else:
-                    info("Waiting: Job not finished")
                     sleep(2)
+                    timer += 2
+            raise TimeoutError("Job timed out")
         elif resource_type == "Service":
             while True:
                 try:
@@ -96,36 +97,52 @@ class KubernetesIntegration():
             namespace=namespace,
             body=client.V1DeleteOptions(
                 propagation_policy="Foreground", grace_period_seconds=5
-            )
+            ),
         )
 
     def get_job_logs(self, kube_resource):
+        debug("Getting logs from job")
         # wait for job to finish
         self.wait_for_resource(kube_resource, "Job")
 
         # get pod with job selector
         from kubernetes.client import V1PodList
-        api_response: V1PodList = self.core_v1.list_namespaced_pod(namespace=self.namespace,
-                                                                   label_selector="job-name=iperf3-client")
-        job_pod_name = api_response.items[0].metadata.name
+
+        api_response: V1PodList = self.core_v1.list_namespaced_pod(
+            namespace=self.namespace, label_selector="job-name=iperf3-client"
+        )
+
+        # select pod with status condition reason PodCompleted
+        def find_completed_pod(pod: V1Pod) -> bool:
+            status: V1PodStatus = pod.status
+            condition: V1PodCondition = status.conditions[2]
+            return condition.reason == "PodCompleted"
+        job_pod_name = list(filter(find_completed_pod, api_response.items))[0].metadata.name
+
         # get logs from pod
         pod_log = self.core_v1.read_namespaced_pod_log(
             name=job_pod_name, namespace=self.namespace
         )
 
-        pod_log_json = pod_log.replace("'", '"').replace("True", "true").replace("False", "false")
+        pod_log_json = (
+            pod_log.replace("'", '"').replace("True", "true").replace("False", "false")
+        )
 
         benchmark_result = json.loads(pod_log_json)
         return benchmark_result
 
-    def exists_in_kubernetes(self, resource, resource_type: RESOURCE_TYPES, name="") -> bool:
+    def exists_in_kubernetes(
+            self, resource, resource_type: RESOURCE_TYPES, name=""
+    ) -> bool:
         if type(resource) is dict and "metadata" in resource.keys():
             name = resource["metadata"]["name"]
 
         if name == "":
             raise Exception("Resource name is empty")
 
-        lookup_function = getattr(self.client.resources.get(api_version="v1", kind=resource_type), "get")
+        lookup_function = getattr(
+            self.client.resources.get(api_version="v1", kind=resource_type), "get"
+        )
 
         try:
             lookup_function(name=name, namespace="default")
@@ -145,7 +162,9 @@ class KubernetesIntegration():
         if name == "":
             raise Exception("Resource name is empty")
 
-        lookup_function = getattr(self.client.resources.get(api_version="v1", kind=resource_type), "get")
+        lookup_function = getattr(
+            self.client.resources.get(api_version="v1", kind=resource_type), "get"
+        )
 
         while True:
             try:
