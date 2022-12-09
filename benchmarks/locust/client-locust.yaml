@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       containers:
-      - image: 888aaen/k8perf-locust-benchmark:latest
+      - image: 888aaen/k8perf-locust-benchmark:0.1.2
 
         name: locust-client
         args:
@@ -19,9 +19,9 @@ spec:
             - --headless
             - -t
             - 10s
-            - --stop-timeout
-            - "5"
             - --json
+            - --loglevel
+            - ERROR
       restartPolicy: Never
       # Getting set in the benchmark tool
       #nodeSelector:
