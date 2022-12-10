@@ -3,6 +3,10 @@ This is a benchmark application for kubernetes. It is used to test network perfo
 
 <img alt="k8perf logo" src="./assets/logo.png"/>
 
+## Demo of the application
+[![k8perf demo video](https://img.youtube.com/vi/RA5H2KPW4Ic/0.jpg)](https://www.youtube.com/watch?v=RA5H2KPW4Ic)
+
+
 ## Run the application
 install this python package, a place where you have a kubernetes config file, and run the following command:
 ```
