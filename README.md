@@ -27,4 +27,3 @@ if you're not using the script, remember to install the module with the followin
 There are two files in the folder `bandwidth`:
 - the server `iperf3-server.yaml`
 - the client `iperf3-client.yaml`
-
