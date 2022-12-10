@@ -27,3 +27,11 @@ if you're not using the script, remember to install the module with the followin
 There are two files in the folder `bandwidth`:
 - the server `iperf3-server.yaml`
 - the client `iperf3-client.yaml`
+
+
+## Results
+The results of our experiments are located in the results folder.
+
+Images and visualizations of data and analysis are located in the images folder.
+
+visualize.ipynb is a notebook which was used to generate the heatmaps for the iperf3 tests.
